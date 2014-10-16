@@ -1,9 +1,11 @@
 import os
 import urllib, urllib2
+import ConfigParser
 
-file = open('info', 'r')
-username = file.readline()[0:10]
-password = file.readline()
+config = ConfigParser.RawConfigParser()
+config.read('E:\GitHub\Python_pro\config.ini')
+username = config.get('zjulogin', 'username')
+password = config.get('zjulogin', 'password')
 url = "https://net.zju.edu.cn/rad_online.php"
 d = {
     'action': 'auto_dm',
@@ -15,7 +17,6 @@ urllib2.urlopen(urllib2.Request(
     headers = {'Referer': "https://net.zju.edu.cn/srun_port1.php?"},
     data = urllib.urlencode(d)
 ))
-print d
 
 url = "https://net.zju.edu.cn/cgi-bin/srun_portal"
 d = {
