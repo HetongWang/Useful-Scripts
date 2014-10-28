@@ -1,7 +1,7 @@
 #-*- coding: UTF-8 -*-
-import os, sys
+import sys
 import urllib, urllib2
-import re
+import ConfigParser
 import json
 import time
 import smtplib
@@ -27,16 +27,18 @@ class FindYW(object):
 		data_json = urllib2.urlopen(self.url).read()
 		data = json.loads(data_json)
 		if self.train_code:
-			for train in data['data']['datas']:
-				if train['station_train_code'] == self.train_code:
+			for train in data['data']:
+				if train['queryLeftNewDTO']['station_train_code'] == self.train_code:
 					self.train = train
 					break
 		else:
-			self.train = data['data']['datas'][0]
+			self.train = data['data'][0]
 	
 	def getPassword(self):
-		with open('pw.txt', 'r') as f:
-			return f.read()
+		config = ConfigParser.RawConfigParser()
+		config.read("E:\GitHub\Python_pro\script.ini")
+		password = config.get('email', 'password')
+		return password
 	
 	def sendEmail(self):
 		smtp = smtplib.SMTP()
@@ -52,19 +54,15 @@ class FindYW(object):
 	
 	def seek(self):
 		self.getTrain()
-		num = self.train[self.ticket_type]
-		print self.train['station_train_code']
+		num = self.train['queryLeftNewDTO'][self.ticket_type]
+		print self.train['queryLeftNewDTO']['station_train_code']
 		none = u'\u65e0'
 		if num != none:
 			self.sendEmail()
 			self.send_email = True
 				
 
-que_url = 'https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT&queryDate=2014-10-01&from_station=HZH&to_station=KSH'
-train_code = 'G7586'
-ticket_type = 'ze_num'
-FindYW(que_url, train_code, ticket_type)
-
-train_code = 'G7584'
+que_url = 'https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date=2014-10-31&leftTicketDTO.from_station=HZH&leftTicketDTO.to_station=KSH&purpose_codes=ADULT'
+train_code = 'G44'
 ticket_type = 'ze_num'
 FindYW(que_url, train_code, ticket_type)
