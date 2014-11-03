@@ -17,6 +17,6 @@ class zjulogin(object):
             data = urllib.urlencode(data)
         )).read()
 
-login = zjulogin("E:\GitHub\Python_pro\script.ini")
+login = zjulogin(os.path.join(os.path.dirname(__file__), "config.ini"))
 login.post("https://net.zju.edu.cn/rad_online.php", "auto_dm")
 login.post("https://net.zju.edu.cn/cgi-bin/srun_portal", "login")

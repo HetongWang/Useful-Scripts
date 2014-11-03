@@ -12,6 +12,7 @@ class FindYW(object):
 		self.url = url
 		self.train_code = train_code
 		self.ticket_type = ticket_type
+		self.base_dir = os.path.dirname(__file__)
 		self.loop()
 
 	def loop(self):
@@ -36,7 +37,7 @@ class FindYW(object):
 	
 	def getPassword(self):
 		config = ConfigParser.RawConfigParser()
-		config.read("E:\GitHub\Python_pro\script.ini")
+		config.read(os.path.join(self.base_dir, "config.ini"))
 		password = config.get('email', 'password')
 		return password
 	
