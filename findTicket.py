@@ -1,5 +1,5 @@
 #-*- coding: UTF-8 -*-
-import sys
+import sys, os
 import urllib, urllib2
 import ConfigParser
 import json
@@ -7,39 +7,31 @@ import time
 import smtplib
 
 class FindYW(object):
-	def __init__(self, url, train_code, ticket_type):
-		self.send_email = False
-		self.url = url
-		self.train_code = train_code
-		self.ticket_type = ticket_type
+	def __init__(self):
 		self.base_dir = os.path.dirname(__file__)
+		config = ConfigParser.RawConfigParser()
+		config.read(os.path.join(self.base_dir, "config.ini"))
+		self.target_email = config.get('ticket', 'target_email')
+		self.query_url = config.get('ticket', 'query_url')
+		self.train_code = config.get('ticket', 'train_code')
+		self.ticket_type = config.get('ticket', 'ticket_type')
+		self.emial_password = config.get('ticket', 'password')
+		self.send_email = False
 		self.loop()
 
 	def loop(self):
-		if self.send_email:
-			sys.exit(0)
-		else:
-			print "no ticket"
+		while (not self.send_email):
 			self.seek()
-			time.sleep(30)
-			self.loop()
+			time.sleep(10)
+		sys.exit(0)
 	
 	def getTrain(self):
-		data_json = urllib2.urlopen(self.url).read()
+		data_json = urllib2.urlopen(self.query_url).read()
 		data = json.loads(data_json)
-		if self.train_code:
-			for train in data['data']:
-				if train['queryLeftNewDTO']['station_train_code'] == self.train_code:
-					self.train = train
-					break
-		else:
-			self.train = data['data'][0]
-	
-	def getPassword(self):
-		config = ConfigParser.RawConfigParser()
-		config.read(os.path.join(self.base_dir, "config.ini"))
-		password = config.get('email', 'password')
-		return password
+		for train in data['data']:
+			if train['queryLeftNewDTO']['station_train_code'] == self.train_code:
+				self.train = train['queryLeftNewDTO']
+				break
 	
 	def sendEmail(self):
 		smtp = smtplib.SMTP()
@@ -48,22 +40,26 @@ class FindYW(object):
 		try:
 			smtp.connect('smtp.qq.com', '25')
 			smtp.login('hetong583', password)
+			smtp.sendmail('hetong583@qq.com', self.target_email, msg)
 			smtp.sendmail('hetong583@qq.com', 'hetong583@qq.com', msg)
 			smtp.quit()
-		except Exception, e:
+		except Exception as e:
 			print str(e)
 	
 	def seek(self):
-		self.getTrain()
-		num = self.train['queryLeftNewDTO'][self.ticket_type]
-		print self.train['queryLeftNewDTO']['station_train_code']
-		none = u'\u65e0'
-		if num != none:
-			self.sendEmail()
-			self.send_email = True
+		try:
+			self.getTrain()
+			num = self.train[self.ticket_type]
+			none = u'\u65e0'
+			if num != none:
+				self.sendEmail()
+				self.send_email = True
+			else:
+				print "no ticket, do next try after 10 seconds"
+		except KeyError:
+			print 'Error:', 'query failed'
+		except Exception as e:
+			print 'Error:', e
 				
 
-que_url = 'https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date=2014-10-31&leftTicketDTO.from_station=HZH&leftTicketDTO.to_station=KSH&purpose_codes=ADULT'
-train_code = 'G44'
-ticket_type = 'ze_num'
-FindYW(que_url, train_code, ticket_type)
+FindYW();
