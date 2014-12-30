@@ -1,10 +1,11 @@
 #-*- coding: UTF-8 -*-
 import sys, os
-import urllib, urllib2
+import urllib2
 import ConfigParser
 import json
 import time
 import smtplib
+from datetime import datetime
 
 class FindYW(object):
 	def __init__(self):
@@ -15,7 +16,7 @@ class FindYW(object):
 		self.query_url = config.get('ticket', 'query_url')
 		self.train_code = config.get('ticket', 'train_code')
 		self.ticket_type = config.get('ticket', 'ticket_type')
-		self.emial_password = config.get('ticket', 'password')
+		self.email_password = config.get('ticket', 'password')
 		self.send_email = False
 		self.loop()
 
@@ -26,6 +27,8 @@ class FindYW(object):
 		sys.exit(0)
 	
 	def getTrain(self):
+		now = datetime.now()
+		print now
 		data_json = urllib2.urlopen(self.query_url).read()
 		data = json.loads(data_json)
 		for train in data['data']:
@@ -35,16 +38,13 @@ class FindYW(object):
 	
 	def sendEmail(self):
 		smtp = smtplib.SMTP()
-		password = self.getPassword()
+		password = self.email_password
 		msg = 'Subject: 主人主人~ 人家新发现了一张车票，请赶快去抢吧~ 喵呜~~~'
-		try:
-			smtp.connect('smtp.qq.com', '25')
-			smtp.login('hetong583', password)
-			smtp.sendmail('hetong583@qq.com', self.target_email, msg)
-			smtp.sendmail('hetong583@qq.com', 'hetong583@qq.com', msg)
-			smtp.quit()
-		except Exception as e:
-			print str(e)
+		smtp.connect('smtp.qq.com', '25')
+		smtp.login('hetong583', password)
+		smtp.sendmail('hetong583@qq.com', self.target_email, msg)
+		smtp.sendmail('hetong583@qq.com', 'hetong583@qq.com', msg)
+		smtp.quit()
 	
 	def seek(self):
 		try:
@@ -62,4 +62,4 @@ class FindYW(object):
 			print 'Error:', e
 				
 
-FindYW();
+FindYW()
